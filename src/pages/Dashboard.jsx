@@ -1,59 +1,37 @@
-import { useEffect, useState } from "react";
-import { fetchDashboard, closeCase } from "../api/doctor.api";
+import CaseCard from "../components/CaseCard";
+import useDashboard from "../hooks/useDashboard";
 
 export default function Dashboard() {
-    const [emergencyCases, setEmergencyCases] = useState([]);
-    const [normalCases, setNormalCases] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-
-    async function loadDashboard() {
-        try {
-            setLoading(true);
-            setError(null);
-
-            const res = await fetchDashboard();
-            setEmergencyCases(res.data.emergencyCases);
-            setNormalCases(res.data.normalCases);
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    async function handleClose(caseId) {
-        try {
-            await closeCase(caseId);
-            await loadDashboard(); // 🔁 re-fetch (backend = source of truth)
-        } catch (err) {
-            alert(err.message);
-        }
-    }
-
-    useEffect(() => {
-        loadDashboard();
-    }, []);
+    const {
+        emergencyCases,
+        normalCases,
+        closedCases,
+        loading,
+        error,
+        closeById,
+    } = useDashboard();
 
     if (loading) return <p>Loading...</p>;
-    if (error) return <p style={{ color: "red" }}>{error}</p>;
+    if (error) return <p className="text-red-600">{error}</p>;
 
     return (
-        <div style={{ padding: 20 }}>
-            <h2>🚨 Emergency Cases</h2>
+        <div className="mx-auto p-6 max-w-3xl">
+            <h2 className="mb-2 font-bold text-lg">🚨 Emergency Cases</h2>
             {emergencyCases.map((c) => (
-                <div key={c._id}>
-                    <b>{c.patientName}</b> — {c.complaint}
-                    <button onClick={() => handleClose(c._id)}>Close</button>
-                </div>
+                <CaseCard key={c._id} c={c} onClose={closeById} />
             ))}
 
-            <h2 style={{ marginTop: 30 }}>🟢 Normal Cases</h2>
+            <h2 className="mt-6 mb-2 font-bold text-lg">🟢 Normal Cases</h2>
             {normalCases.map((c) => (
-                <div key={c._id}>
-                    <b>{c.patientName}</b> — {c.complaint}
-                    <button onClick={() => handleClose(c._id)}>Close</button>
-                </div>
+                <CaseCard key={c._id} c={c} onClose={closeById} />
+            ))}
+
+            <h2 className="mt-6 mb-2 font-bold text-lg">📁 Closed Cases</h2>
+            {closedCases.length === 0 && (
+                <p className="text-gray-500 text-sm">No closed cases</p>
+            )}
+            {closedCases.map((c) => (
+                <CaseCard key={c._id} c={c} faded />
             ))}
         </div>
     );
