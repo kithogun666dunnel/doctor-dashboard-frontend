@@ -55,12 +55,14 @@
 
 import { useEffect, useState } from "react";
 import { getCases, closeCaseById } from "../api/doctor.api";
+import useVisibility from "./useVisibility";
 
 export default function useDashboard() {
   const [activeTab, setActiveTab] = useState("OPEN");
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const isVisible = useVisibility();
 
   const fetchCases = async (status) => {
     try {
@@ -90,8 +92,20 @@ export default function useDashboard() {
   const normalCases = cases.filter((c) => c.severity !== "EMERGENCY");
 
   useEffect(() => {
+    // always fetch on tab switch
     fetchCases(activeTab);
-  }, [activeTab]);
+
+    // poll ONLY when:
+    // - page is visible
+    // - OPEN tab is active
+    if (!isVisible || activeTab !== "OPEN") return;
+
+    const interval = setInterval(() => {
+      fetchCases("OPEN");
+    }, 15000); // 15s calm polling
+
+    return () => clearInterval(interval);
+  }, [activeTab, isVisible]);
 
   return {
     activeTab,
