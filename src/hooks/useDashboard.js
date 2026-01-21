@@ -85,6 +85,9 @@ export default function useDashboard() {
       fetchCases("OPEN"); // rollback
     }
   };
+  const emergencyCases = cases.filter((c) => c.severity === "EMERGENCY");
+
+  const normalCases = cases.filter((c) => c.severity !== "EMERGENCY");
 
   useEffect(() => {
     fetchCases(activeTab);
@@ -94,6 +97,8 @@ export default function useDashboard() {
     activeTab,
     setActiveTab,
     cases,
+    emergencyCases,
+    normalCases,
     loading,
     error,
     closeCase,
