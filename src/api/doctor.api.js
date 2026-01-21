@@ -10,6 +10,15 @@ export const closeCaseById = async (id) => {
     method: "POST",
   });
 };
+
+export const updateCaseNotes = async (id, notes) => {
+  return fetch(`${BASE_URL}/cases/${id}/notes`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ notes }),
+  });
+};
+
 export async function fetchDashboard({ page = 1, limit = 10 } = {}) {
   const res = await fetch(
     `${BASE_URL}/api/doctor/dashboard?page=${page}&limit=${limit}`,

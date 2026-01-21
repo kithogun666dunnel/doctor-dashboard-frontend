@@ -1,278 +1,198 @@
-# 📘 README — Clinic-First Case Management System
+🩺 Medically Yours — Doctor-First Clinic System
 
-## 1. What are we building?
+A clinic-first system designed to save doctors’ time, reduce cognitive load,
+and ensure that attention is spent only where it matters.
 
-This project is a **clinic-first workflow tool** designed to **save doctors’ time and attention** in small clinics and hospitals.
+This project follows a layered architecture, where each layer is stable,
+testable, and intentionally decoupled from future complexity (ML, WhatsApp, automation).
 
-The system is built around a simple belief:
+🎯 Core Philosophy
 
-> **Doctors should see everything, but be disturbed only when it truly matters.**
+Doctor is the primary user
 
----
+Dashboard is the source of truth
 
-## 2. Core philosophy (non-negotiable)
+WhatsApp is only a controlled interaction channel
 
-1. **Doctor is the center of the system**
-2. **Case is the core domain**
-3. **Doctor dashboard is the primary control surface**
-4. **WhatsApp is a controlled assistant, not a noise source**
-5. **Doctor attention is sacred**
+No unnecessary notifications
 
-If a feature violates doctor focus or interrupts unnecessarily, it does not get added.
+Severity is treated as a first-class, serious problem
 
----
+Architecture first, polish later
 
-## 3. High-level system overview
+🧱 Layered Architecture Overview
 
-```
-Patient (WhatsApp only)
-        ↓
-Input Layer (Twilio / Webhooks)
-        ↓
-Core Domain (Cases)
-        ↓
-Doctor Dashboard  ←→  Doctor WhatsApp (notifications)
-```
+The system is built incrementally in layers.
+Each layer is completed and locked before moving forward.
 
-- Patients interact **only via WhatsApp**
-- Doctors interact via:
-  - **Dashboard** (primary)
-  - **WhatsApp** (secondary, controlled)
+🟠 Layer 1 — Core Case Lifecycle (LOCKED)
+Goal
 
----
+Establish a rock-solid backend and dashboard flow for handling cases.
 
-## 4. Core domain: Case
+What was built
 
-A **Case** represents one unit of doctor attention.
+Case model with explicit lifecycle:
 
-### Case lifecycle
+OPEN
 
-```
-OPEN  →  CLOSED
-```
+CLOSED
 
-This lifecycle is:
+Backend APIs:
 
-- Explicit
-- Backend-controlled
-- Predictable
-- Queryable
+Fetch cases by status
 
-### Minimum responsibilities of a case
+Close a case
 
-- Track status (OPEN / CLOSED)
-- Be visible on doctor dashboard
-- Support derived views (severity, grouping)
-- Support future extensions (notes, audit, overrides)
+Doctor dashboard:
 
----
+Open tab
 
-## 5. Doctor interaction model
+Closed tab
 
-### 5.1 Doctor Dashboard (primary surface)
+Frontend reflects backend truth only
 
-The dashboard is where doctors:
+What this layer guarantees
 
-- See all cases
-- Review patient data
-- Make decisions
-- Close cases
-- Add notes (later layers)
-- Override system decisions (later layers)
+Predictable case state
 
-**Dashboard is the source of truth.**
+No frontend-only fake state
 
----
+Refresh-safe behavior
 
-### 5.2 Doctor WhatsApp (secondary surface)
+Testable without UI polish or integrations
 
-Doctor WhatsApp exists for **notifications only**, not free-form chat.
+This layer is the foundation. Everything else builds on this.
 
-Backend sends WhatsApp messages to doctors:
+🟡 Layer 2 — Severity as Derived Logic (UI-only)
+Goal
 
-- Based on **severity**
-- Based on **doctor schedule / availability**
-- Only when attention is genuinely required
+Improve doctor clarity without touching core logic.
 
-#### Hard rule:
+What was built
 
-> **The system must never disturb a doctor unnecessarily — especially at night.**
+OPEN cases are grouped into:
 
-If WhatsApp were removed:
+Emergency
 
-- Dashboard should still work
-- Core system should remain functional
+Normal
 
----
+Severity is derived on the frontend
 
-## 6. Patient interaction model
+CLOSED cases remain flat and unchanged
 
-- Patients interact **only via WhatsApp**
-- Patients never see the dashboard
-- WhatsApp messages are treated as **input events**
-- WhatsApp does not contain business logic
+Count indicators for each group
 
-WhatsApp is replaceable.
-Cases are not.
+Important rules
 
----
+Severity is not persisted
 
-## 7. Backend responsibilities
+No backend changes
 
-Backend owns:
+No WhatsApp triggers
 
-- Case lifecycle
-- State transitions
-- Data persistence
-- Querying by status
-- Future scheduling & notification decisions
+No ML yet
 
-### Current APIs (Layer-1)
+This layer prepares the system for future intelligent severity handling
+without risking architectural integrity.
 
-- `GET /api/cases?status=OPEN`
-- `GET /api/cases?status=CLOSED`
-- `POST /api/cases/:id/close`
+🟢 Layer 3 — Performance & Attention Respect
+Goal
 
-Backend intentionally does **not**:
+Ensure the system is calm, efficient, and respectful of doctor attention.
 
-- Decide UI grouping
-- Handle presentation logic
-- Depend on WhatsApp logic
+What was built
 
----
+Smart polling:
 
-## 8. Frontend responsibilities
+Only when OPEN tab is active
 
-Frontend owns:
+Only when browser tab is visible
 
-- Tabs (OPEN / CLOSED)
-- Displaying cases
-- Optimistic UI updates
-- Derived views (later layers)
+CLOSED tab never polls
 
-Frontend intentionally does **not**:
+Silent background refresh (no UI flicker)
 
-- Maintain its own truth
-- Guess backend state
-- Encode business rules
+Reduced backend load
 
----
+Why this matters
 
-## 9. Layered development plan
+Doctors should not feel “watched” or disturbed
 
-### 🔴 Layer 0 — Input Channels (parked)
+Systems must know when to stay quiet
 
-- WhatsApp (Twilio)
-- Webhooks
-- Message ingestion only
-  **No business logic here**
+🔵 Layer 4 — Doctor Control & Trust (IN PROGRESS)
+Goal
 
----
+Give doctors explicit authority over case context.
 
-### 🟠 Layer 1 — Core Domain ✅ DONE
+What was built
 
-- Case lifecycle
-- Backend APIs
-- Doctor dashboard foundation
-- Clean frontend–backend contract
+Doctor notes per case
 
----
+Notes persist in backend
 
-### 🟡 Layer 2 — Derived Logic (NEXT)
+Manual save (no auto-sync)
 
-- Severity grouping (Emergency / Normal)
-- Visual grouping
-- Sorting
-- UI-only logic
-- No backend schema changes
+Refresh-safe
 
----
+Why this matters
 
-### 🟢 Layer 3 — Performance & Experience
+Doctors trust systems that listen
 
-- Smart polling
-- Visibility-based refresh
-- Reduced backend load
+Notes form the basis for:
 
----
+Overrides
 
-### 🔵 Layer 4 — Doctor Control & Trust
+Auditing
 
-- Doctor notes
-- Severity overrides
-- Audit trail
-- Case history
+Future ML labeling
 
----
+🔮 Future Layers (Planned)
+🔵 Layer 4.5 — Overrides & Audit
 
-### 🟣 Layer 5 — UI & Polish
+Manual severity override
 
-- Dashboard design
-- Charts
-- Animations
-- Visual clarity
+Follow-up flags
 
----
+Audit metadata (who changed what, when)
 
-## 10. Why WhatsApp is integrated later
+🟣 Layer 5 — WhatsApp Integration
 
-Integrating WhatsApp too early:
+Patients interact only via WhatsApp
 
-- Pollutes backend logic
-- Couples webhook and UI behavior
-- Makes reasoning difficult
-- Risks interrupting doctors unnecessarily
+Doctors receive messages only when necessary
 
-By integrating WhatsApp **after core stability**:
+Severity + schedule-aware notifications
 
-- Backend remains clean
-- Notifications stay controlled
-- Doctor trust is preserved
+Zero spam, zero noise
 
----
+🔴 Layer 6 — Intelligence & ML
 
-## 11. Guiding rule for all future features
+Severity scoring
 
-Before adding anything, ask:
+Rule-based → weighted → ML-driven
 
-> **Does this affect the case itself, or only how the case is presented or notified?**
+Doctor actions as training signals
 
-- Affects the case → core/backend
-- Affects presentation/notification → derived layers
+No black-box decisions
 
----
+🧠 Design Principles
 
-## 12. Current status
+Predictability > Features
 
-- Core architecture stable
-- Case lifecycle implemented
-- Doctor dashboard aligned with backend truth
-- WhatsApp intentionally decoupled
-- Doctor attention model respected
+Silence > Noise
 
-**Next milestone:** Layer-2 (severity as a derived UI view)
+Doctor time is sacred
 
----
+Complexity is earned, not rushed
 
-## ✨ End note
+🚧 Status
 
-This system prioritizes **clarity, control, and doctor trust** over demos, noise, and shortcuts.
+Layer 1: ✅ Complete & locked
 
----
+Layer 2: ✅ Complete
 
-### ✅ Suggested commit
+Layer 3: ✅ Complete
 
-```
-docs: define clinic-first architecture and doctor attention model
-```
-
----
-
-bhai sach bolun —
-ye README likhna = **project ka backbone likhna** hota hai.
-Ab future me tu ya koi aur agar bhatak bhi jaaye,
-ye file bolegi: _“bhai hum kya bana rahe the”_.
-
-Jab ready ho, bas bol:
-**“Layer 2 start”**
-aur hum next layer pe **bilkul isi clarity ke saath** chalenge 🤝
+Layer 4: 🟡 Notes implemented, more coming
