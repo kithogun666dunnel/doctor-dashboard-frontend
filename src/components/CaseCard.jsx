@@ -1,32 +1,14 @@
-import SeverityBadge from "./SeverityBadge";
-
-export default function CaseCard({ c, onClose, faded = false }) {
+export default function CaseCard({ data, showClose, onClose }) {
     return (
-        <div
-            className={`mb-3 rounded-lg border p-4 shadow-sm
-      ${faded ? "bg-gray-50 opacity-70" : "bg-white"}`}
-        >
-            <div className="flex justify-between items-center">
-                <div className="font-semibold">
-                    {c.patientName}
-                    <SeverityBadge severity={c.severity} />
-                </div>
+        <div style={{ border: "1px solid #ccc", padding: "8px", marginBottom: "8px" }}>
+            <p>Status: {data.status}</p>
+            <p>{new Date(data.updatedAt).toLocaleString()}</p>
 
-                {onClose && (
-                    <button
-                        onClick={() => onClose(c._id)}
-                        className="bg-gray-900 hover:bg-gray-700 px-3 py-1 rounded text-white text-sm"
-                    >
-                        Close
-                    </button>
-                )}
-            </div>
-
-            <p className="mt-2 text-gray-700">{c.complaint}</p>
-
-            <div className="mt-2 text-gray-500 text-xs">
-                {new Date(c.createdAt).toLocaleString()}
-            </div>
+            {showClose && (
+                <button onClick={() => onClose(data._id)}>
+                    Mark as Closed
+                </button>
+            )}
         </div>
     );
 }

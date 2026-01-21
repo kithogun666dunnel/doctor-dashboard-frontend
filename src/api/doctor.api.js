@@ -1,5 +1,15 @@
-const BASE_URL = "http://localhost:3000";
+const BASE_URL = "http://localhost:3000/api";
 
+export const getCases = async (status) => {
+  const res = await fetch(`${BASE_URL}/cases?status=${status}`);
+  return res.json();
+};
+
+export const closeCaseById = async (id) => {
+  return fetch(`${BASE_URL}/cases/${id}/close`, {
+    method: "POST",
+  });
+};
 export async function fetchDashboard({ page = 1, limit = 10 } = {}) {
   const res = await fetch(
     `${BASE_URL}/api/doctor/dashboard?page=${page}&limit=${limit}`,
