@@ -18,6 +18,13 @@ export const updateCaseNotes = async (id, notes) => {
     body: JSON.stringify({ notes }),
   });
 };
+export const updateCaseOverride = async (id, overrideSeverity) => {
+  return fetch(`${BASE_URL}/cases/${id}/override`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ overrideSeverity }),
+  });
+};
 
 export async function fetchDashboard({ page = 1, limit = 10 } = {}) {
   const res = await fetch(

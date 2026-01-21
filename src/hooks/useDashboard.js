@@ -62,18 +62,19 @@ export default function useDashboard() {
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
   const isVisible = useVisibility();
 
-  const fetchCases = async (status) => {
+  const fetchCases = async (status, showLoader = true) => {
     try {
-      setLoading(true);
+      if (showLoader) setLoading(true);
       setError(null);
       const data = await getCases(status);
       setCases(data);
-    } catch (e) {
+    } catch (_) {
       setError("Failed to load cases");
     } finally {
-      setLoading(false);
+      if (showLoader) setLoading(false);
     }
   };
 
@@ -83,26 +84,30 @@ export default function useDashboard() {
 
     try {
       await closeCaseById(id);
-    } catch (e) {
-      fetchCases("OPEN"); // rollback
+    } catch (_) {
+      fetchCases("OPEN", true); // rollback
     }
   };
-  const emergencyCases = cases.filter((c) => c.severity === "EMERGENCY");
 
-  const normalCases = cases.filter((c) => c.severity !== "EMERGENCY");
+  // 🔥 LAYER 4.5 — DOCTOR OVERRIDE HAS PRIORITY
+  const isEmergency = (c) =>
+    c.overrideSeverity
+      ? c.overrideSeverity === "EMERGENCY"
+      : c.severity === "EMERGENCY";
+
+  const emergencyCases = cases.filter(isEmergency);
+  const normalCases = cases.filter((c) => !isEmergency(c));
 
   useEffect(() => {
-    // always fetch on tab switch
-    fetchCases(activeTab);
+    // fetch on tab switch
+    fetchCases(activeTab, true);
 
-    // poll ONLY when:
-    // - page is visible
-    // - OPEN tab is active
+    // poll only when OPEN tab + page visible
     if (!isVisible || activeTab !== "OPEN") return;
 
     const interval = setInterval(() => {
-      fetchCases("OPEN");
-    }, 15000); // 15s calm polling
+      fetchCases("OPEN", false); // silent polling
+    }, 15000);
 
     return () => clearInterval(interval);
   }, [activeTab, isVisible]);

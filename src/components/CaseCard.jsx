@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { updateCaseNotes } from "../api/doctor.api";
+import { updateCaseNotes, updateCaseOverride } from "../api/doctor.api";
+
 
 export default function CaseCard({ data, showClose, onClose }) {
     const [notes, setNotes] = useState(data.notes || "");
@@ -31,6 +32,15 @@ export default function CaseCard({ data, showClose, onClose }) {
                     Mark as Closed
                 </button>
             )}
+
+            <button onClick={() => updateCaseOverride(data._id, "EMERGENCY")}>
+                Mark Emergency
+            </button>
+
+            <button onClick={() => updateCaseOverride(data._id, "NORMAL")}>
+                Mark Normal
+            </button>
+
         </div>
     );
 }
